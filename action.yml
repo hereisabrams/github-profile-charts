@@ -1,0 +1,70 @@
+name: GitHub Profile Charts
+description: Draw your GitHub stats (private contributions included) as animated light/dark SVG cards for your profile README.
+author: hereisabrams
+branding:
+  icon: bar-chart-2
+  color: blue
+
+inputs:
+  user:
+    description: GitHub login to chart. Defaults to the repository owner.
+    default: ${{ github.repository_owner }}
+  out:
+    description: Folder the SVGs and stats.json are written to.
+    default: profile-charts
+  accent:
+    description: blue, violet, aqua, orange or pink.
+    default: blue
+  charts:
+    description: Comma-separated subset of stats,yearly,monthly,weekday,languages.
+    default: stats,yearly,monthly,weekday,languages
+  readme:
+    description: README to update between <!-- PROFILE-CHARTS:START --> and <!-- PROFILE-CHARTS:END --> with a stats table. Empty to skip.
+    default: ''
+  subtitles:
+    description: 'JSON object of chart to subtitle, e.g. {"yearly":"Since day one"}. {allTime}, {lastYearTotal} and other summary fields are filled in.'
+    default: ''
+  token:
+    description: Token for the GitHub API. The default token reads your contribution calendar (private counts included when your profile shows them).
+    default: ${{ github.token }}
+  stats-token:
+    description: Optional personal access token of the charted user (repo scope). Adds private merged PRs and languages.
+    default: ''
+  commit:
+    description: Commit and push the generated files.
+    default: 'true'
+  commit-message:
+    description: Commit message for the refresh.
+    default: 'chore: refresh profile charts'
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+    - shell: bash
+      run: node "$GITHUB_ACTION_PATH/src/cli.mjs"
+      env:
+        INPUT_USER: ${{ inputs.user }}
+        INPUT_OUT: ${{ inputs.out }}
+        INPUT_ACCENT: ${{ inputs.accent }}
+        INPUT_CHARTS: ${{ inputs.charts }}
+        INPUT_README: ${{ inputs.readme }}
+        INPUT_SUBTITLES: ${{ inputs.subtitles }}
+        GITHUB_TOKEN: ${{ inputs.token }}
+        STATS_TOKEN: ${{ inputs.stats-token }}
+    - if: inputs.commit == 'true'
+      shell: bash
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add "$OUT"
+        if [ -n "$README" ]; then git add "$README"; fi
+        git diff --cached --quiet && exit 0
+        git commit -m "$MESSAGE"
+        git push
+      env:
+        OUT: ${{ inputs.out }}
+        README: ${{ inputs.readme }}
+        MESSAGE: ${{ inputs.commit-message }}

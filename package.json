@@ -1,0 +1,15 @@
+{
+  "name": "github-profile-charts",
+  "version": "1.0.0",
+  "description": "Draw your GitHub stats, private contributions included, as animated light/dark SVG cards for your profile README.",
+  "type": "module",
+  "bin": { "github-profile-charts": "src/cli.mjs" },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "charts": "node src/cli.mjs"
+  },
+  "engines": { "node": ">=20" },
+  "keywords": ["github", "profile", "readme", "stats", "svg", "charts", "github-action", "contributions"],
+  "author": "João Abrams (https://github.com/hereisabrams)",
+  "license": "MIT"
+}
